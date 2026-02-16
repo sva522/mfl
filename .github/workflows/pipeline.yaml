@@ -9,23 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Fetch files list and Compress
+      - name: Fetch file list and Compress
         timeout-minutes: 15
         run: |
-          echo 'Fetching files list...'
+          echo 'Fetching file list...'
           rsync -av --dry-run rsync://ftp.lip6.fr/Ubuntu/archive  . > ubuntu.list &
           rsync -av --dry-run rsync://mirrors.ircam.fr/pub/alpine . > alpine.list &
           wait
           
           echo 'Compression...'
-          export XZ_OPT=-9
-          tar -cJf /tmp/fileslist.tar.xz --exclude='.git' .
+          tar -cvf /tmp/fileslist.tar --exclude='.git' .
+          xz -v -9 /tmp/fileslist.tar
 
       - name: Delete existing release (if exists)
         uses: dev-drprasad/delete-tag-and-release@v1.0
