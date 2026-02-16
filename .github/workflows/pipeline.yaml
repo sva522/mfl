@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   schedule:
-    - cron: "0 0 */15 * *"   # Tous les 15 jours à minuit UTC
-  workflow_dispatch:         # Permet de lancer manuellement
+    - cron: "0 0 */15 * *"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,16 +13,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # Important pour inclure tout l’historique si besoin
+          fetch-depth: 0
 
-      - name: Fetch files list
+      - name: Fetch files list and Compress
+        timeout-minutes: 15
         run: |
-          rsync -av --dry-run rsync://ftp.lip6.fr/Ubuntu/archive  . > ubuntu.list
-          rsync -av --dry-run rsync://mirrors.ircam.fr/pub/alpine . > alpine.list
-          tar -cf fileslist.tar * && xz -v -9 *.tar
+          echo 'Fetching files list...'
+          rsync -av --dry-run rsync://ftp.lip6.fr/Ubuntu/archive  . > ubuntu.list &
+          rsync -av --dry-run rsync://mirrors.ircam.fr/pub/alpine . > alpine.list &
+          wait
+          
+          echo 'Compression...'
+          export XZ_OPT=-9
+          tar -cJf /tmp/fileslist.tar.xz --exclude='.git' .
 
       - name: Delete existing release (if exists)
         uses: dev-drprasad/delete-tag-and-release@v1.0
+        continue-on-error: true
         with:
           tag_name: "1.0"
         env:
@@ -33,6 +40,6 @@ jobs:
         with:
           tag_name: "1.0"
           name: "Version 1.0"
-          files: fileslist.tar.xz
+          files: /tmp/fileslist.tar.xz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
