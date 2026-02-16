@@ -27,8 +27,8 @@ jobs:
           wait
           
           echo 'Compression...'
-          tar -cvf /tmp/fileslist.tar --exclude='.git' .
-          xz -v -9 /tmp/fileslist.tar
+          tar -cvf /tmp/filelist.tar --exclude='.git' .
+          xz -v -9 /tmp/filelist.tar
 
       - name: Delete existing release (if exists)
         uses: dev-drprasad/delete-tag-and-release@v1.0
@@ -43,6 +43,6 @@ jobs:
         with:
           tag_name: "1.0"
           name: "Version 1.0"
-          files: /tmp/fileslist.tar.xz
+          files: /tmp/filelist.tar.xz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
