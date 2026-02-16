@@ -28,7 +28,7 @@ jobs:
           
           echo 'Compression...'
           tar -cvf /tmp/filelist.tar --exclude='.git' .
-          xz -v -9 /tmp/filelist.tar
+          xz -v -9 /tmp/filelist.tar 2>&1
 
       - name: Delete existing release (if exists)
         uses: dev-drprasad/delete-tag-and-release@v1.0
