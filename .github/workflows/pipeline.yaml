@@ -1,0 +1,38 @@
+name: Build and Release
+
+on:
+  schedule:
+    - cron: "0 0 */15 * *"   # Tous les 15 jours à minuit UTC
+  workflow_dispatch:         # Permet de lancer manuellement
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Important pour inclure tout l’historique si besoin
+
+      - name: Fetch files list
+        run: |
+          rsync -av --dry-run rsync://ftp.lip6.fr/Ubuntu/archive  . > ubuntu.list
+          rsync -av --dry-run rsync://mirrors.ircam.fr/pub/alpine . > alpine.list
+          tar -cf fileslist.tar * && xz -v -9 *.tar
+
+      - name: Delete existing release (if exists)
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: "1.0"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new release 1.0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "1.0"
+          name: "Version 1.0"
+          files: fileslist.tar.xz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
