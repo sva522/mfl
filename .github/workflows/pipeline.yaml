@@ -1,8 +1,8 @@
 name: Build and Release
 
 on:
-  schedule:
-    - cron: "0 0 */15 * *"
+  #schedule:
+  #  - cron: "0 0 */15 * *"
   workflow_dispatch:
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
         timeout-minutes: 15
         run: |
           echo 'Fetching file list...'
-          rsync -av --dry-run rsync://ftp.lip6.fr/Ubuntu/archive  . > ubuntu.list &
-          rsync -av --dry-run rsync://mirrors.ircam.fr/pub/alpine . > alpine.list &
+          rsync -av --dry-run rsync://ftp.lip6.fr/Ubuntu/archive/  . > ubuntu.list &
+          rsync -av --dry-run rsync://mirrors.ircam.fr/pub/alpine/ . > alpine.list &
           wait
-          
+
           echo 'Compression...'
           tar -cvf /tmp/filelist.tar --exclude='.git' .
           xz -v -9 /tmp/filelist.tar 2>&1
